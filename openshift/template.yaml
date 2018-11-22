@@ -6,22 +6,62 @@ metadata:
     description: "Collects all image streams from a namespace and pushes them to a defined registry"
     tags: "instant-app,registry"
 objects:
-- apiVersion: v1
-  kind: Pod
+- apiVersion: batch/v1
+  kind: Job
   metadata:
     name: s2i-to-registry
   spec:
-    containers:
-    - env:
-      - name: REGISTRY
-        value: ${REGISTRY}
-      - name: REGISTRY_AUTH
-        value: ${REGISTRY_AUTH}
-      image: quay.io/vpavlin/s2i-to-registry:latest
+    parallelism: 1
+    completions: 1
+    template:
+      metadata:
+        name: s2i-to-registry
+      spec:
+        serviceAccountName: s2i-to-registry
+        restartPolicy: Never
+        containers:
+        - name: s2i-to-registry
+          env:
+          - name: REGISTRY
+            value: ${REGISTRY}
+          - name: REGISTRY_AUTH
+            value: ${REGISTRY_AUTH}
+          - name: REPOSITORY
+            value: ${REPOSITORY}
+          image: quay.io/vpavlin/s2i-to-registry:latest
+- apiVersion: v1
+  kind: ServiceAccount
+  metadata:
+    name: s2i-to-registry
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: s2i-to-registry-pull
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: system:image-puller
+  subjects:
+  - kind: ServiceAccount
+    name: s2i-to-registry
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: RoleBinding
+  metadata:
+    name: s2i-to-registry-edit
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: edit
+  subjects:
+  - kind: ServiceAccount
+    name: s2i-to-registry
 parameters:
 - description: Target registry URL (as used in $HOME/.docker/config.json)
   name: REGISTRY
   value: quay.io
 - description: Token for the registry authentication (as used in $HOME/.docker/config.json)
   name: REGISTRY_AUTH
+  required: true
+- description: Repository in registry to push images to
+  name: REPOSITORY
   required: true

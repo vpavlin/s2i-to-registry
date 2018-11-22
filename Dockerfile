@@ -12,3 +12,5 @@ RUN chgrp -R 0 /opt/s2i2reg/ &&\
     chmod -R g+rwx /opt/s2i2reg/
 
 USER 1001
+
+CMD ["bash", "./move.sh"]
