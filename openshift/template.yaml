@@ -1,0 +1,27 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: s2i-to-registry
+  annotations:
+    description: "Collects all image streams from a namespace and pushes them to a defined registry"
+    tags: "instant-app,registry"
+objects:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: s2i-to-registry
+  spec:
+    containers:
+    - env:
+      - name: REGISTRY
+        value: ${REGISTRY}
+      - name: REGISTRY_AUTH
+        value: ${REGISTRY_AUTH}
+      image: quay.io/vpavlin/s2i-to-registry:latest
+parameters:
+- description: Target registry URL (as used in $HOME/.docker/config.json)
+  name: REGISTRY
+  value: quay.io
+- description: Token for the registry authentication (as used in $HOME/.docker/config.json)
+  name: REGISTRY_AUTH
+  required: true
