@@ -4,6 +4,7 @@
 [ -z "${REGISTRY}" ] && REGISTRY="quay.io"
 [ -z "${REPOSITORY}" ] && REPOSITORY="vpavlin"
 [ -z "${TOKEN}" ] && TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
+[ -z "${QUAY_API_TOKEN}" ] && [ "${REGISTRY}" == "quay.io" ] && echo "Quay.io API token was not provided, all created repositories will be private!"
 
 TARGET_DIR="/tmp"
 
@@ -26,6 +27,12 @@ for info in `oc get imagestream --no-headers`; do
     for tag in `echo ${TAGS} | tr "," "\n"`; do
         TARGET=${TARGET_DIR}/${NAME}-${tag}
         echo "Pushing ${NAME}:${tag}"
+        if [ -n "${QUAY_API_TOKEN}" ]; then
+            QUAY_HOSTNAME=${REGISTRY} QUAY_API_TOKEN=${QUAY_API_TOKEN} ./qucli get ${REPOSITORY}/${NAME} &> /dev/null
+            if [ $? != 0 ]; then
+                QUAY_HOSTNAME=${REGISTRY} QUAY_API_TOKEN=${QUAY_API_TOKEN} ./qucli create ${REPOSITORY}/${NAME} --visibility public
+            fi
+        fi
         skopeo copy \
             --src-creds s2t-to-registry:${TOKEN} \
             --src-cert-dir /var/run/secrets/kubernetes.io/serviceaccount/ docker://${LOCAL_IMAGE_URL}:${tag} docker://${REGISTRY}/${REPOSITORY}/${NAME}:${tag} &&\

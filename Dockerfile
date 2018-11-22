@@ -7,9 +7,14 @@ RUN mkdir -p /opt/s2i2reg/.docker
 RUN dnf -y install skopeo origin-clients
 
 WORKDIR $HOME
-COPY move.sh config.json.template $HOME/
 RUN chgrp -R 0 /opt/s2i2reg/ &&\
     chmod -R g+rwx /opt/s2i2reg/
+
+RUN curl -o qucli.tar.gz -L https://github.com/koudaiii/qucli/releases/download/v0.6.5/qucli-v0.6.5-linux-amd64.tar.gz &&\
+    tar xzf qucli.tar.gz &&\
+    mv linux-amd64/qucli qucli &&\
+    rm -rf linux-amd64 qucli.tar.gz
+COPY move.sh config.json.template $HOME/
 
 USER 1001
 
