@@ -5,6 +5,7 @@
 [ -z "${REPOSITORY}" ] && REPOSITORY="vpavlin"
 [ -z "${TOKEN}" ] && TOKEN=`cat /var/run/secrets/kubernetes.io/serviceaccount/token`
 [ -z "${QUAY_API_TOKEN}" ] && [ "${REGISTRY}" == "quay.io" ] && echo "Quay.io API token was not provided, all created repositories will be private!"
+[ -z "${IMAGE_STREAMS}" ] && echo "No Image Streams listed, will push all existing image streams"
 
 TARGET_DIR="/tmp"
 
@@ -24,6 +25,12 @@ for info in `oc get imagestream --no-headers`; do
     LOCAL_IMAGE_URL=$(echo ${info} | awk '{print $2}')
     TAGS=$(echo ${info} | awk '{print $3}')
     NAME=$(echo ${info} | awk '{print $1}')
+
+    if [ -n "${IMAGE_STREAMS}" ] && echo ${IMAGE_STREAMS} | grep -qv ${NAME}; then
+        echo "Skipping ${NAME}, not listed in IMAGE_STREAMS"
+        continue
+    fi
+
     for tag in `echo ${TAGS} | tr "," "\n"`; do
         TARGET=${TARGET_DIR}/${NAME}-${tag}
         echo "Pushing ${NAME}:${tag}"

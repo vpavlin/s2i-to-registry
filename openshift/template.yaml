@@ -30,6 +30,8 @@ objects:
             value: ${REPOSITORY}
           - name: QUAY_API_TOKEN
             value: ${QUAY_API_TOKEN}
+          - name: IMAGE_STREAMS
+            value: ${IMAGE_STREAMS}
           image: quay.io/vpavlin/s2i-to-registry:latest
 - apiVersion: v1
   kind: ServiceAccount
@@ -69,4 +71,7 @@ parameters:
   required: true
 - description: Quay.io API token (used to pre-create image repository with public visibility)
   name: QUAY_API_TOKEN
+  required: false
+- description: List of Image Streams which should be pushed from a namespace to registry
+  name: IMAGE_STREAMS
   required: false
