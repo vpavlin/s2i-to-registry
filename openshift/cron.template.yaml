@@ -6,35 +6,41 @@ metadata:
     description: "Collects image streams from a namespace and pushes them to a defined registry"
     tags: "instant-app,registry"
 objects:
-- apiVersion: batch/v1
+- apiVersion: batch/v1beta1
   kind: CronJob
   metadata:
-    name: s2i-to-registry
+    name: s2i-to-registry-cron
   spec:
-    schedule: "0 4 * * *"
+    schedule: '*/1 * * * *'
+    concurrencyPolicy: Forbid
     jobTemplate:
-      parallelism: 1
-      completions: 1
-      template:
-        metadata:
-          name: s2i-to-registry
-        spec:
-          serviceAccountName: s2i-to-registry
-          restartPolicy: Never
-          containers:
-          - name: s2i-to-registry
-            env:
-            - name: REGISTRY
-              value: ${REGISTRY}
-            - name: REGISTRY_AUTH
-              value: ${REGISTRY_AUTH}
-            - name: REPOSITORY
-              value: ${REPOSITORY}
-            - name: QUAY_API_TOKEN
-              value: ${QUAY_API_TOKEN}
-            - name: IMAGE_STREAMS
-              value: ${IMAGE_STREAMS}
-            image: quay.io/vpavlin/s2i-to-registry:latest
+      spec:
+        template:
+          metadata:
+            name: s2i-to-registry-cron
+          spec:
+            serviceAccountName: s2i-to-registry
+            restartPolicy: Never
+            containers:
+            - name: s2i-to-registry-cron
+              env:
+              - name: REGISTRY
+                value: ${REGISTRY}
+              - name: REGISTRY_AUTH
+                value: ${REGISTRY_AUTH}
+              - name: REPOSITORY
+                value: ${REPOSITORY}
+              - name: QUAY_API_TOKEN
+                value: ${QUAY_API_TOKEN}
+              - name: IMAGE_STREAMS
+                value: ${IMAGE_STREAMS}
+              - name: REBUILD
+                value: "true"
+              - name: MOVE
+                value: "true"
+              - name: BUILD_CONFIGS
+                value: ${BUILD_CONFIGS}
+              image: quay.io/vpavlin/s2i-to-registry:feature_add-rebuild
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
@@ -76,4 +82,7 @@ parameters:
   required: false
 - description: List of Image Streams which should be pushed from a namespace to registry
   name: IMAGE_STREAMS
+  required: false
+- description: List of Build Configs which should be rebuilt periodically
+  name: BUILD_CONFIGS
   required: false

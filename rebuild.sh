@@ -26,8 +26,10 @@ for info in `oc get buildconfig --no-headers`; do
     oc start-build $NAME
 done
 
+sleep 10
+
 while oc get build | grep -q Running; do
     BUILDS=$(oc get build -o jsonpath='{.items[?(@.status.phase=="Running")].metadata.name}')
     echo "Builds ${BUILDS} still running"
-    sleep 1
+    sleep 5
 done

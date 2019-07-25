@@ -33,8 +33,10 @@ objects:
           - name: IMAGE_STREAMS
             value: ${IMAGE_STREAMS}
           - name: MOVE
-            value: true
-          image: quay.io/vpavlin/s2i-to-registry:latest
+            value: ${MOVE}
+          - name: REBUILD
+            value: ${REBUILD}
+          image: quay.io/vpavlin/s2i-to-registry:feature_add-rebuild
 - apiVersion: v1
   kind: ServiceAccount
   metadata:
@@ -76,4 +78,13 @@ parameters:
   required: false
 - description: List of Image Streams which should be pushed from a namespace to registry
   name: IMAGE_STREAMS
+  required: false
+- description: List of Build Configs which should be rebuilt periodically
+  name: BUILD_CONFIGS
+  required: false
+- description: Set any value if you want to move the images from OpenShift to an external registry
+  name: MOVE
+  required: false
+- description: Set any value if you want to rebuild images in OpenShift (specifc list can be provided in BUILD_CONFIGS)
+  name: REBUILD
   required: false
