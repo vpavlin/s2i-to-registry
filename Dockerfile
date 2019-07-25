@@ -14,8 +14,10 @@ RUN curl -o qucli.tar.gz -L https://github.com/koudaiii/qucli/releases/download/
     tar xzf qucli.tar.gz &&\
     mv linux-amd64/qucli qucli &&\
     rm -rf linux-amd64 qucli.tar.gz
-COPY move.sh config.json.template $HOME/
+COPY move.sh rebuild.sh run.sh config.json.template $HOME/
+
+RUN chmod +x move.sh rebuild.sh
 
 USER 1001
 
-CMD ["bash", "./move.sh"]
+CMD ["bash", "./run.sh"]
